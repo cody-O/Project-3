@@ -41,7 +41,7 @@ int main(void) {
     // Run Sim
     int response = runSimulation(arr, ncols, numberOfCars);
 
-
+    printf("%d", response);
 
 
 
@@ -76,31 +76,37 @@ int getSpeeds(char letter){
 }
 
 int runSimulation(int **arr, int length, int bunches){
-    int bnchs = bunches;
-    if (bnchs == 0){
+    int bnchs = 0;
+    if (bunches == 0){
         return -1;
     }
 
     for(int i=0; i<length;i++){
-        step(arr, length);
+        bnchs += step(arr, length);
     }
     return bnchs;
 }
 
-void step(int **arr, int length){
-    // Stepping backwards as to not overwrite cars that havent moved yet
-    for(int i=length; i>0;i--){
+int step(int **arr, int length){
+    int ret = 0;
+    // Stepping backwards as to not overwrite bunches that havent moved yet
+    for(int i=length-1; i>-1;i--){
         if(arr[i][0]){
-            // If car reaches end or doesnt catch up to another car
+            //"lock in" bunch if it reaches tghe end
+            if(i + arr[i][1] > length){
+                ret++;
+            }
+            // If bunch doesnt reach end or doesnt catch up to another bunch
             if(i + arr[i][1] < length || !arr[i+arr[i][1]][0]){
                 // Move Car
                 arr[i+arr[i][1]][0] = 1;
                 arr[i+arr[i][1]][1] = arr[i][1];
             }
-            // Delete old car
+            // Delete old bunch
             arr[i][0] = 0;
             arr[i][1] = 0;
             
         }
     }
+    return ret;
 }
