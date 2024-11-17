@@ -4,27 +4,7 @@
 
 // Im sure theres a more elegant way to do this with taking the raw value of the letter but thats stupid so I brute force it
 int getSpeed(char letter){
-    if (letter == 'A'){
-        return 1;
-    } else if (letter == 'B'){
-        return 2;
-    } else if (letter == 'C'){
-        return 3;
-    } else if (letter == 'D'){
-        return 4;
-    } else if (letter == 'E'){
-        return 5;
-    } else if (letter == 'F'){
-        return 6;
-    } else if (letter == 'G'){
-        return 7;
-    } else if (letter == 'H'){
-        return 8;
-    }else if (letter == 'I'){
-        return 9;
-    } else if (letter == 'J'){
-        return 10;
-    }
+    return letter - 'A' + 1;
 }
 
 int jumpCheck(int **arr, int start, int speed){
@@ -73,21 +53,9 @@ int runSimulation(int **arr, int length, int bunches){
     if (bunches == 0){
         return -1;
     }
-    // printf("\n");
-    // for(int i=0; i<length;i++){
-    //     for (int i=0; i<10; i++){
-    //         printf("%d", arr[i][0]);
-    //     }
-    //     printf("\n");
-    //     for (int i=0; i<10; i++){
-    //         printf("%d", arr[i][1]);
-    //     }
-    //     printf("\n");
-    //     printf("\n");
-    //     bnchs += step(arr, length);
-        
-        
-    // }
+    for(int i=0; i<length;i++){
+        bnchs += step(arr, length);
+    }
     return bnchs;
 }
 
@@ -95,83 +63,87 @@ int runSimulation(int **arr, int length, int bunches){
 
 
 int main(void) {
-    
-// Get inputs
-    int ncols;
-    char *char_list = NULL;
-    int *starts = NULL;
+    while (1) {
+        int ncols;
+        char buffer[1024];
+        char *char_list = NULL;
+        int *starts = NULL;
 
-    while (!feof(stdin)) {
-        // Read the length
+        // Read the destination position
         if (scanf("%d", &ncols) != 1) break;
 
-        // Line 2: Read the list of characters dynamically
-        char buffer[1024]; // Temporary buffer for reading input
+        // Read the line of car letters
         if (scanf("%s", buffer) != 1) break;
-
-        size_t char_count = strlen(buffer);
-        char_list = (char *)malloc((char_count + 1) * sizeof(char)); // Dynamic allocation
+        size_t numCars = strlen(buffer);
+        char_list = (char *)malloc((numCars + 1) * sizeof(char));
         if (!char_list) {
             fprintf(stderr, "Memory allocation failed for char_list\n");
             return 1;
         }
-        strcpy(char_list, buffer); // Copy the string into dynamically allocated memory
+        strcpy(char_list, buffer);
 
-        // Line 3: Read the list of numbers dynamically
-        starts = NULL;
-        int num_count = 0;
-        int num;
-        char c;
-
-        while (scanf("%d", &num) == 1) {
-            starts = (int *)realloc(starts, (num_count + 1) * sizeof(int)); // Incrementally allocate
-            if (!starts) {
-                fprintf(stderr, "Memory allocation failed for num_list\n");
+        // Read the initial positions
+        starts = (int *)malloc(numCars * sizeof(int));
+        if (!starts) {
+            fprintf(stderr, "Memory allocation failed for starts\n");
+            free(char_list);
+            return 1;
+        }
+        for (size_t i = 0; i < numCars; i++) {
+            if (scanf("%d", &starts[i]) != 1) {
                 free(char_list);
+                free(starts);
                 return 1;
             }
-            starts[num_count++] = num; // Store the number
-            c = getchar();
-            if (c == '\n' || c == EOF) break; // Stop reading on newline or EOF
         }
-    int *speeds = (int *)malloc(num_count * sizeof(int));
-    for( int i = 0; i < num_count; i++){
-        speeds[i] = getSpeed(char_list[i]);
-    }
 
-
-    int nrows = 2;
-    int numberOfCars = num_count;
-
-
-    // Create Main Array [isCar, speed]
-    int *A = (int *) malloc(nrows*ncols*sizeof(int));
-    int **arr = (int **) malloc(ncols*sizeof(int *));
-    for (int i=0; i<ncols; i++){
-        arr[i] = A + i*nrows;
-    }
-
-    // Start assigning values
-    for (int i = 0; i<ncols; i++){
-        for (int j = 0; j<nrows; j++){
-            arr[i][j] = 0;
-        }
-    }
-    for (int i = 0; i<ncols; i++){
-        for (int j = 0; j<numberOfCars; j++){
-            if (i == starts[j]){
-                arr[i][0] = 1;
-                arr[i][1] = speeds[j];
+        // Validate input
+        for (size_t i = 0; i < numCars; i++) {
+            if (starts[i] >= ncols) {
+                printf("-1\n");
+                free(char_list);
+                free(starts);
+                goto cleanup;
             }
         }
+
+        // Initialize simulation grid
+        int nrows = 2;
+        int *A = (int *)calloc(nrows * ncols, sizeof(int));
+        int **arr = (int **)malloc(ncols * sizeof(int *));
+        if (!A || !arr) {
+            fprintf(stderr, "Memory allocation failed for simulation array\n");
+            free(char_list);
+            free(starts);
+            free(A);
+            free(arr);
+            return 1;
+        }
+        for (int i = 0; i < ncols; i++) {
+            arr[i] = A + i * nrows;
+        }
+
+        // Populate grid with car positions and speeds
+        for (size_t i = 0; i < numCars; i++) {
+            arr[starts[i]][0] = 1;
+            arr[starts[i]][1] = getSpeed(char_list[i]);
+        }
+
+        // Run the simulation and print the result
+        printf("%d\n", runSimulation(arr, ncols, numCars));
+
+        // Free dynamically allocated memory
+        free(char_list);
+        free(starts);
+        free(A);
+        free(arr);
+
+        // Continue to the next input set
+        cleanup:
+        if (feof(stdin)) break;
     }
-    // Run Sim
-    int response = runSimulation(arr, ncols, numberOfCars);
 
-    printf("%d", response);
-    
     return 0;
-
-}}
+}
 
 
