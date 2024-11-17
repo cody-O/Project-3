@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Im sure theres a more elegant way to do this with taking the raw value of the letter but thats stupid so I brute force it
 int getSpeed(char letter){
@@ -94,17 +95,57 @@ int runSimulation(int **arr, int length, int bunches){
 
 
 int main(void) {
-
     
 // Get inputs
-    
+    int ncols;
+    char *char_list = NULL;
+    int *starts = NULL;
+
+    while (!feof(stdin)) {
+        // Read the length
+        if (scanf("%d", &ncols) != 1) break;
+
+        // Line 2: Read the list of characters dynamically
+        char buffer[1024]; // Temporary buffer for reading input
+        if (scanf("%s", buffer) != 1) break;
+
+        size_t char_count = strlen(buffer);
+        char_list = (char *)malloc((char_count + 1) * sizeof(char)); // Dynamic allocation
+        if (!char_list) {
+            fprintf(stderr, "Memory allocation failed for char_list\n");
+            return 1;
+        }
+        strcpy(char_list, buffer); // Copy the string into dynamically allocated memory
+
+        // Line 3: Read the list of numbers dynamically
+        starts = NULL;
+        int num_count = 0;
+        int num;
+        char c;
+
+        while (scanf("%d", &num) == 1) {
+            starts = (int *)realloc(starts, (num_count + 1) * sizeof(int)); // Incrementally allocate
+            if (!starts) {
+                fprintf(stderr, "Memory allocation failed for num_list\n");
+                free(char_list);
+                return 1;
+            }
+            starts[num_count++] = num; // Store the number
+            c = getchar();
+            if (c == '\n' || c == EOF) break; // Stop reading on newline or EOF
+        }
+    printf("Length: %d (not used for array allocation)\n", ncols);
+    printf("Characters: %s (length: %zu)\n", char_list, char_count);
+    printf("Numbers: ");
+    for (int i = 0; i < num_count; i++) {
+        printf("%d ", starts[i]);
+    }
+    return 0;
 
 
-
-    int ncols = 10;
     int nrows = 2;
     int speeds[] = {getSpeed('D'),getSpeed('B'),getSpeed('A'),getSpeed('A')};
-    int starts[] = {0,1,4,7};
+    
     int numberOfCars = sizeof(starts) / sizeof(starts[0]);
 
 
@@ -133,6 +174,7 @@ int main(void) {
     int response = runSimulation(arr, ncols, numberOfCars);
 
     printf("%d", response);
+    }
     return 0;
 
 }
