@@ -134,19 +134,14 @@ int main(void) {
             c = getchar();
             if (c == '\n' || c == EOF) break; // Stop reading on newline or EOF
         }
-    printf("Length: %d (not used for array allocation)\n", ncols);
-    printf("Characters: %s (length: %zu)\n", char_list, char_count);
-    printf("Numbers: ");
-    for (int i = 0; i < num_count; i++) {
-        printf("%d ", starts[i]);
+    int *speeds = (int *)malloc(num_count * sizeof(int));
+    for( int i = 0; i < num_count; i++){
+        speeds[i] = getSpeed(char_list[i]);
     }
-    return 0;
 
 
     int nrows = 2;
-    int speeds[] = {getSpeed('D'),getSpeed('B'),getSpeed('A'),getSpeed('A')};
-    
-    int numberOfCars = sizeof(starts) / sizeof(starts[0]);
+    int numberOfCars = num_count;
 
 
     // Create Main Array [isCar, speed]
@@ -174,9 +169,9 @@ int main(void) {
     int response = runSimulation(arr, ncols, numberOfCars);
 
     printf("%d", response);
-    }
+    
     return 0;
 
-}
+}}
 
 
